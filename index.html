@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการร้านค้า</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="qrcode.js" defer></script>
+    <script src="barcode.js" defer></script>
+    <script src="main.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+        }
+
+        /* ซ่อนเนื้อหาหลักก่อน */
+        #main-content {
+            display: none;
+        }
+
+        .login-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            margin: 100px auto;
+        }
+
+        .login-container h2 {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .login-container label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .login-container input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .login-container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .login-container button:hover {
+            background-color: #0056b3;
+        }
+
+        .login-container p {
+            color: red;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- ส่วนของหน้าล็อกอิน -->
+    <div class="login-container" id="login-container">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            
+            <button type="submit">Login</button>
+            
+            <p id="loginError"></p>
+        </form>
+    </div>
+
+    <!-- เนื้อหาหลักของระบบจัดการร้านค้า -->
+    <div id="main-content">
+        <nav>
+            <button id="menu-toggle">☰</button>
+            <ul id="menu">
+                <li><a href="#" onclick="showPage('stock')"><i class="fas fa-boxes icon"></i>จัดการสต็อก</a></li>
+                <li><a href="#" onclick="showPage('sales')"><i class="fas fa-shopping-cart icon"></i>การขาย</a></li>
+                <li><a href="#" onclick="showPage('repairs')"><i class="fas fa-tools icon"></i>การซ่อม</a></li>
+                <li><a href="#" onclick="showPage('expenses')"><i class="fas fa-receipt icon"></i>ค่าใช้จ่ายและรายรับ</a></li>
+                <li><a href="#" onclick="showPage('attendance')"><i class="fas fa-user-clock icon"></i>การเข้าทำงานของพนักงาน</a></li>
+                <li><a href="#" onclick="showPage('consignment')"><i class="fas fa-handshake icon"></i>การขายฝาก</a></li>
+                <li><a href="#" onclick="showPage('admin')"><i class="fas fa-user-shield icon"></i>การจัดการผู้ดูแลระบบ</a></li>
+            </ul>
+        </nav>
+
+        <!-- จัดการสต็อก -->
+        <section id="stock" class="page" style="display: none;">
+            <div class="header">
+                <h1>จัดการสต็อก</h1>
+                <button class="open-form-button" onclick="toggleForm('stockFormContainer')">เพิ่ม/แก้ไขสินค้า</button>
+            </div>
+            
+            <div id="stockFormContainer" class="form-container">
+                <form id="stockForm" class="form-content">
+                    <span class="close-button" onclick="toggleForm('stockFormContainer')">&times;</span>
+                    <label for="productName">ชื่อสินค้า:</label>
+                    <input type="text" id="productName" name="productName"><br>
+                    <label for="quantity">จำนวน:</label>
+                    <input type="number" id="quantity" name="quantity"><br>
+                    <label for="price">ราคา:</label>
+                    <input type="number" id="price" name="price"><br>
+                    <label for="barcode">รหัสบาร์โค้ด/QR โค้ด:</label>
+                    <input type="text" id="barcode" name="barcode"><br>
+                    <button type="button" onclick="addOrUpdateProduct()">บันทึก</button>
+                </form>
+            </div>
+
+            <h2>รายการสต็อก</h2>
+            <table id="stockTable">
+                <thead>
+                    <tr>
+                        <th>ชื่อสินค้า</th>
+                        <th>จำนวน</th>
+                        <th>ราคา</th>
+                        <th>รหัสบาร์โค้ด/QR โค้ด</th>
+                        <th>QR โค้ด</th>
+                        <th>การกระทำ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- รายการสินค้าจะถูกเพิ่มที่นี่ -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- การขาย -->
+        <section id="sales" class="page" style="display: none;">
+            <div class="header">
+                <h1>การขาย</h1>
+                <button class="open-form-button" onclick="toggleForm('salesFormContainer')">เพิ่ม/แก้ไขการขาย</button>
+            </div>
+
+            <div id="salesFormContainer" class="form-container">
+                <form id="salesForm" class="form-content">
+                    <span class="close-button" onclick="toggleForm('salesFormContainer')">&times;</span>
+                    <label for="productName">ชื่อสินค้า:</label>
+                    <input type="text" id="productName" name="productName"><br>
+                    <label for="quantity">จำนวน:</label>
+                    <input type="number" id="quantity" name="quantity"><br>
+                    <label for="price">ราคา:</label>
+                    <input type="number" id="price" name="price"><br>
+                    <label for="salesType">ประเภทการขาย:</label>
+                    <select id="salesType" name="salesType">
+                        <option value="retail">ขายปลีก</option>
+                        <option value="wholesale">ขายส่ง</option>
+                    </select><br>
+                    <label for="salesperson">ชื่อพนักงานขาย:</label>
+                    <input type="text" id="salesperson" name="salesperson"><br>
+                    <button type="button" onclick="addSale()">บันทึก</button>
+                </form>
+            </div>
+
+            <h2>รายการขาย</h2>
+            <table id="salesTable">
+                <thead>
+                    <tr>
+                        <th>ชื่อสินค้า</th>
+                        <th>จำนวน</th>
+                        <th>ราคา</th>
+                        <th>รวมทั้งหมด</th>
+                        <th>ประเภทการขาย</th>
+                        <th>ชื่อพนักงานขาย</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- รายการขายจะถูกเพิ่มที่นี่ -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- การซ่อม -->
+        <section id="repairs" class="page" style="display: none;">
+            <div class="header">
+                <h1>การซ่อม</h1>
+                <button class="open-form-button" onclick="toggleForm('repairsFormContainer')">เพิ่ม/แก้ไขการซ่อม</button>
+            </div>
+
+            <div id="repairsFormContainer" class="form-container">
+                <form id="repairsForm" class="form-content">
+                    <span class="close-button" onclick="toggleForm('repairsFormContainer')">&times;</span>
+                    <label for="deviceName">ชื่ออุปกรณ์:</label>
+                    <input type="text" id="deviceName" name="deviceName"><br>
+                    <label for="repairDate">วันที่:</label>
+                    <input type="date" id="repairDate" name="repairDate"><br>
+                    <label for="repairDetails">รายละเอียดการซ่อม:</label>
+                    <input type="text" id="repairDetails" name="repairDetails"><br>
+                    <label for="repairStatus">สถานะการซ่อม:</label>
+                    <select id="repairStatus" name="repairStatus">
+                        <option value="inProgress">กำลังซ่อม</option>
+                        <option value="completed">เสร็จสิ้น</option>
+                    </select><br>
+                    <button type="button" onclick="addRepair()">บันทึก</button>
+                </form>
+            </div>
+
+            <h2>รายการการซ่อม</h2>
+            <table id="repairsTable">
+                <thead>
+                    <tr>
+                        <th>ชื่ออุปกรณ์</th>
+                        <th>วันที่</th>
+                        <th>รายละเอียดการซ่อม</th>
+                        <th>สถานะการซ่อม</th>
+                        <th>การกระทำ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- รายการการซ่อมจะถูกเพิ่มที่นี่ -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- ค่าใช้จ่ายและรายรับ -->
+        <section id="expenses" class="page" style="display: none;">
+            <div class="header">
+                <h1>ค่าใช้จ่ายและรายรับ</h1>
+                <button class="open-form-button" onclick="toggleForm('expensesFormContainer')">เพิ่ม/แก้ไขค่าใช้จ่าย</button>
+            </div>
+
+            <div id="expensesFormContainer" class="form-container">
+                <form id="expensesForm" class="form-content">
+                    <span class="close-button" onclick="toggleForm('expensesFormContainer')">&times;</span>
+                    <label for="expenseName">รายการค่าใช้จ่าย:</label>
+                    <input type="text" id="expenseName" name="expenseName"><br>
+                    <label for="expenseAmount">จำนวนเงิน:</label>
+                    <input type="number" id="expenseAmount" name="expenseAmount"><br>
+                    <label for="expenseDate">วันที่:</label>
+                    <input type="date" id="expenseDate" name="expenseDate"><br>
+                    <button type="button" onclick="addExpense()">บันทึก</button>
+                </form>
+            </div>
+
+            <h2>รายการค่าใช้จ่าย</h2>
+            <table id="expensesTable">
+                <thead>
+                    <tr>
+                        <th>รายการค่าใช้จ่าย</th>
+                        <th>จำนวนเงิน</th>
+                        <th>วันที่</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- รายการค่าใช้จ่ายจะถูกเพิ่มที่นี่ -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- การเข้าทำงานของพนักงาน -->
+        <section id="attendance" class="page" style="display: none;">
+            <div class="header">
+                <h1>การเข้าทำงานของพนักงาน</h1>
+                <button class="open-form-button" onclick="toggleForm('attendanceFormContainer')">เพิ่ม/แก้ไขการเข้าทำงาน</button>
+            </div>
+
+            <div id="attendanceFormContainer" class="form-container">
+                <form id="attendanceForm" class="form-content">
+                    <span class="close-button" onclick="toggleForm('attendanceFormContainer')">&times;</span>
+                    <label for="employeeName">ชื่อพนักงาน:</label>
+                    <input type="text" id="employeeName" name="employeeName"><br>
+                    <label for="attendanceDate">วันที่:</label>
+                    <input type="date" id="attendanceDate" name="attendanceDate"><br>
+                    <label for="checkInTime">เวลาเข้า:</label>
+                    <input type="time" id="checkInTime" name="checkInTime"><br>
+                    <label for="checkOutTime">เวลาออก:</label>
+                    <input type="time" id="checkOutTime" name="checkOutTime"><br>
+                    <button type="button" onclick="addAttendance()">บันทึก</button>
+                </form>
+            </div>
+
+            <h2>รายการการเข้าทำงาน</h2>
+            <table id="attendanceTable">
+                <thead>
+                    <tr>
+                        <th>ชื่อพนักงาน</th>
+                        <th>วันที่</th>
+                        <th>เวลาเข้า</th>
+                        <th>เวลาออก</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- รายการการเข้าทำงานจะถูกเพิ่มที่นี่ -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- การขายฝาก -->
+        <section id="consignment" class="page" style="display: none;">
+            <div class="header">
+                <h1>การขายฝาก</h1>
+                <button class="open-form-button" onclick="toggleForm('consignmentFormContainer')">เพิ่ม/แก้ไขการขายฝาก</button>
+            </div>
+
+            <div id="consignmentFormContainer" class="form-container">
+                <form id="consignmentForm" class="form-content">
+                    <span class="close-button" onclick="toggleForm('consignmentFormContainer')">&times;</span>
+                    <label for="itemName">ชื่ออุปกรณ์:</label>
+                    <input type="text" id="itemName" name="itemName"><br>
+                    <label for="consignmentAmount">จำนวนเงิน:</label>
+                    <input type="number" id="consignmentAmount" name="consignmentAmount"><br>
+                    <label for="consignmentDate">วันที่:</label>
+                    <input type="date" id="consignmentDate" name="consignmentDate"><br>
+                    <button type="button" onclick="addConsignment()">บันทึก</button>
+                </form>
+            </div>
+
+            <h2>รายการการขายฝาก</h2>
+            <table id="consignmentTable">
+                <thead>
+                    <tr>
+                        <th>ชื่ออุปกรณ์</th>
+                        <th>จำนวนเงิน</th>
+                        <th>วันที่</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- รายการการขายฝากจะถูกเพิ่มที่นี่ -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- การจัดการผู้ดูแลระบบ -->
+        <section id="admin" class="page" style="display: none;">
+            <div class="header">
+                <h1>การจัดการผู้ดูแลระบบ</h1>
+                <button class="open-form-button" onclick="toggleForm('adminFormContainer')">เพิ่ม/แก้ไขผู้ดูแลระบบ</button>
+            </div>
+
+            <div id="adminFormContainer" class="form-container">
+                <form id="adminForm" class="form-content">
+                    <span class="close-button" onclick="toggleForm('adminFormContainer')">&times;</span>
+                    <label for="adminName">ชื่อผู้ดูแลระบบ:</label>
+                    <input type="text" id="adminName" name="adminName"><br>
+                    <label for="adminRole">ระดับการเข้าถึง:</label>
+                    <select id="adminRole" name="adminRole">
+                        <option value="admin">Admin</option>
+                        <option value="manager">Manager</option>
+                        <option value="staff">Staff</option>
+                    </select><br>
+                    <button type="button" onclick="addOrUpdateAdmin()">บันทึก</button>
+                </form>
+            </div>
+
+            <h2>รายการผู้ดูแลระบบ</h2>
+            <table id="adminTable">
+                <thead>
+                    <tr>
+                        <th>ชื่อผู้ดูแลระบบ</th>
+                        <th>ระดับการเข้าถึง</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- รายการผู้ดูแลระบบจะถูกเพิ่มที่นี่ -->
+                </tbody>
+            </table>
+
+            <!-- เพิ่มฟอร์มสำหรับตั้งรหัสผ่านแอดมิน -->
+            <div id="admin-password-section">
+                <h2>ตั้งรหัสผ่านแอดมิน</h2>
+                <form id="admin-password-form" action="php/set_password.php" method="post">
+                    <label for="new-password">รหัสผ่านใหม่:</label>
+                    <input type="password" id="new-password" name="new-password" required>
+                    <button type="submit">ตั้งรหัสผ่าน</button>
+                </form>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // ตรวจสอบสถานะการล็อกอินในหน้า index.html
+        document.addEventListener('DOMContentLoaded', function() {
+    const userLoggedIn = sessionStorage.getItem('userLoggedIn');
+    if (userLoggedIn !== 'true') {
+        // ถ้ายังไม่ได้ล็อกอิน ให้แสดงหน้าเข้าสู่ระบบ
+        document.getElementById('login-container').style.display = 'block';
+        document.getElementById('main-content').style.display = 'none';
+    } else {
+        // ถ้าล็อกอินแล้ว ให้แสดงเนื้อหาหลัก
+        document.getElementById('login-container').style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
+    }
+});
+
+        </script>
+        
+        <script>
+        document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        var username = document.getElementById('username').value;
+        var password = document.getElementById('password').value;
+
+        // กำหนดค่ารหัสผ่านและชื่อผู้ใช้ที่ใช้ล็อกอิน
+        const correctUsername = 'start22';
+        const correctPassword = '000999ee';
+
+        // ตรวจสอบว่าผู้ใช้กรอกข้อมูลถูกต้อง
+        if (username === correctUsername && password === correctPassword) {
+            sessionStorage.setItem('userLoggedIn', 'true'); // ตั้งค่า session storage เมื่อผู้ใช้ล็อกอินสำเร็จ
+            document.getElementById('login-container').style.display = 'none'; // ซ่อนหน้าล็อกอิน
+            document.getElementById('main-content').style.display = 'block'; // แสดงเนื้อหาหลัก
+        } else {
+            document.getElementById('loginError').textContent = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"; // แสดงข้อความเมื่อข้อมูลไม่ถูกต้อง
+        }
+    });
+});
+
+        </script>
+        
+</body>
+</html>
